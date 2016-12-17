@@ -37,16 +37,26 @@
 		8) $importance_weight_arr = get_words_with_importance($merged_count_arr);
 		   //order this arr from most important to least important and get the first 8 results
 		9) var_dump(get_top_words($importance_weight_arr, 8));
-		
+
+## 17/12/2016
+**First tests with php scraping (using PHP Simple HTML DOM Parser)**
+   - Get simple elements (by id, by classname)
+   - Get children of find results
+
+ -> kan lang duren als het om veel content gaat :confused:
+
 
 ## Geraadpleegde bronnen
-	Filteren:
-		<https://en.wikipedia.org/wiki/Tf%E2%80%93idf>
-	Beschikbare API's
-		<https://developer.nytimes.com/>
-		<http://open-platform.theguardian.com/documentation/>
-		<https://newsapi.org/the-washington-post-api>
-	Scraping with PHP:
-		<http://timvaniersel.com/web-scraping-met-php/>
+### Filteren:
+https://en.wikipedia.org/wiki/Tf%E2%80%93idf
+### Beschikbare API's
+https://developer.nytimes.com/
+http://open-platform.theguardian.com/documentation/
+https://newsapi.org/the-washington-post-api
+### Scraping with PHP:
+http://timvaniersel.com/web-scraping-met-php/
+https://sourceforge.net/projects/simplehtmldom/files/
+http://nimishprabhu.com/top-10-best-usage-examples-php-simple-html-dom-parser.html
+http://simplehtmldom.sourceforge.net/manual.htm
 
 
