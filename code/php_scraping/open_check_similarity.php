@@ -5,6 +5,9 @@ include 'simple_html_dom.php';
 //The most common English words should be filtered from the article (source: https://en.wikipedia.org/wiki/Most_common_words_in_English)
 $most_common_english_words = array("have", "with", "this", "that", "were", "from", "they", "will", "would", "there", "their", "what", "about", "which", "when", "make", "like", "time", "just", "know", "tak", "into", "your", "good", "some", "could", "them", "than", "then", "look", "only", "come", "over", "think", "also", "back", "after", "these", "here", "made", "like", "almost", "later", "told", "said", "been", "didn", "most");
 
+//trustworthiness level starts at 50, it decreases when [I don't know yet...] and increases when an article was found on trustworthty media
+$trustworthiness = 50;
+
 //get important words from article
 //check search results on snopes
 //open first result
@@ -14,11 +17,20 @@ $most_common_english_words = array("have", "with", "this", "that", "were", "from
 
 
 if(isset($_POST['submit'])) {
-    $results = get_key_words($_POST['article']);
+    $results = get_key_words($_POST['article'], 5);
+    //first search snopes
     $url = search_snopes($_POST['searchwords'], 0);
+    if($url) {
+        //hieronder moet er ook nog eerst gechecked worden of de belangrijkste 5 woorden er in voorkomen
+        $true_false = open_article_and_check($url, $results, 0);
+    }
+    else {
+        echo("no results found");
+    }
     
-    //hieronder moet er ook nog eerst gechecked worden of de belangrijkste 5 woorden er in voorkomen
-    open_article_and_check($url, $results, 0);
+    //if snopes doesn't have a result, search other newssites
+    search_bbc($_POST['searchwords']);
+    //search_the_independent($_POST['searchwords']);
 }
 
 
@@ -29,13 +41,17 @@ function search_snopes($searchwords, $result_number) {
     
     if(!empty($search_test)){
         
-        $url = $search_test->find('.search-results .item h3 a', $result_number)->href;
-        
-        //bovenstaande geeft /trump-sends-unpresidented-tweet/ , maar moet omgevormd worden naar url hieronder
-        //http://www.snopes.com/trump-sends-unpresidented-tweet/
-        $url = 'http://www.snopes.com' . $url;
-        //print_r($url);
-        return $url;
+        if(isset($search_test->find('.search-results .item h3 a', $result_number)->href)) {
+            $url = $search_test->find('.search-results .item h3 a', $result_number)->href;
+            //bovenstaande geeft /trump-sends-unpresidented-tweet/ , maar moet omgevormd worden naar url hieronder
+            //http://www.snopes.com/trump-sends-unpresidented-tweet/
+            $url = 'http://www.snopes.com' . $url;
+            //print_r($url);
+            return $url;
+        }
+        else {
+            return false;
+        }
 
     }
 }
@@ -73,7 +89,7 @@ function open_article_and_check($url, $top_words, $result_number) {
             $k++;
         }
         
-        echo($string_to_search_in);
+        //echo($string_to_search_in);
         $article_relevant = true;
         
         $string_to_search_in = str_replace('"', "", $string_to_search_in);
@@ -101,6 +117,7 @@ function open_article_and_check($url, $top_words, $result_number) {
             echo("article seems to be relevant and the result on snopes was ");
             $true_false = $page->find('.claim-old span span', 0)->plaintext;
             echo($true_false);
+            return $true_false;
         }
         else {
             echo("article was not relevant, let's try the next result");
@@ -111,8 +128,15 @@ function open_article_and_check($url, $top_words, $result_number) {
                 
                 $next_url = search_snopes($_POST['searchwords'], $result_number);
                 echo("next url: " .$next_url);
-                
-                return open_article_and_check($next_url, $top_words, $result_number);
+                if($next_url) {
+                    return open_article_and_check($next_url, $top_words, $result_number);
+                }
+                else {
+                    return "not in 5 first results";
+                }
+            }
+            else {
+                return "not in 5 first results";
             }
         }
         
@@ -121,9 +145,92 @@ function open_article_and_check($url, $top_words, $result_number) {
 }
 
 
+//bbc
+function search_bbc($searchwords) {
+    $search_string = str_replace(" ", "+", $searchwords);
+    //var_dump('http://www.bbc.co.uk/search?q=' . $search_string . '&sa_f=search-product&scope=');
+    $search_test = file_get_html('http://www.bbc.co.uk/search?q=' . $search_string . '&sa_f=search-product&scope=');
+    
+    if(!empty($search_test)){
+
+        $i = 0;
+        foreach ($search_test->find('ol.results li h1') as $article) {
+            $title = $search_test->find('ol.results li h1 a',$i)->plaintext;
+            //echo($itemtest2);
+            //$item['link'] = $test4->find('.filmtitel .titel',$i)->plaintext;
+            $results_search[] = $title;
+            
+            $url_to_open = $search_test->find('ol.results li h1 a',$i)->href;
+            
+            $article_found = check_similarity_bbc($url_to_open);
+            
+            if($article_found) {
+                //betrouwbaarheid mag ++ gedaan worden
+                break;
+            }
+            
+            $i++;
+        }
+
+        //print_r($results_search);
+        
+        //$url_to_open = $search_test->find('ol.results li h1 a', 1)->href;
+        //check_similarity_bbc($url_to_open);
+    }
+}
+
+function check_similarity_bbc($url) {
+    //open the article and check whether it's similar enough
+    $page = file_get_html($url);
+    
+    if(!empty($page)){
+        
+        $string_to_search_in = "";
+        
+        //bbc nog probleem dat de opmaak van artikels niet altijd hetzelfde is...
+        //put the whole article in one long string to search in
+        $i = 0;
+        foreach ($page->find('.story-body__inner p') as $paragraph) {
+            $result = $page->find('.story-body__inner p', $i)->plaintext;
+            //echo($result);
+            $string_to_search_in = $string_to_search_in . $result;
+            $i++;
+        }
+        //echo($string_to_search_in);
+        $article_relevant = true;
+        
+        $string_to_search_in = str_replace('"', "", $string_to_search_in);
+        
+        //count is the amount of top words occur in the article found
+        $count = 0;
+        
+        $top_words = get_key_words($_POST['article'], 20);
+        
+        foreach($top_words as $top_word) {
+            print_r($top_word);
+            $position = strpos($string_to_search_in , $top_word);
+            if($position) {
+                $count++;
+            }
+        }
+        echo($count);
+        if($count > 10) {
+            echo("success !!");
+            return true;
+        }
+        else {
+            echo("no match, try the next article...");
+            return false;
+        }
+        
+    }
+}
+
+
+
 // get most important words from article
 
-function get_key_words($text) {
+function get_key_words($text, $amount) {
     
     global $most_common_english_words;
     
@@ -150,8 +257,8 @@ function get_key_words($text) {
     //step 7 - calculate importance based on number of occurrencies and whether or not starting with an uppercase
     $importance_weight_arr = get_words_with_importance($merged_count_arr);
     
-    //step 8 - get the most important words in order of importance and limit the results to 5 key_words
-    $top_words = get_top_words($importance_weight_arr, 5);
+    //step 8 - get the most important words in order of importance and limit the results to the given amount of key_words
+    $top_words = get_top_words($importance_weight_arr, $amount);
     
     return $top_words;
     
@@ -269,6 +376,11 @@ function starts_with_upper($str) {
 <head>
     <meta charset="UTF-8">
     <title>Open search result</title>
+    <style>
+        .snopes_result {
+            background-color: #cecece;
+        }
+    </style>
 </head>
 <body>
     
@@ -299,6 +411,14 @@ function starts_with_upper($str) {
             <?php endif ?>
     
         </div>
+        
+        <?php if(isset($true_false)): ?>
+        <div class="snopes_result">
+            <h2>Snopes result:</h2>
+            <p>The article was found on snopes.com and was declared <?php echo $true_false ?></p>
+        </div>
+        <?php endif ?>
+        
     </main>
     
     

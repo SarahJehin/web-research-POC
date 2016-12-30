@@ -62,7 +62,8 @@
    - op snopes eerste zoekresultaat openen en kijken of 5 belangrijkste woorden van artikel erin voorkomen
    - indien ja: kijk welk resultaat snopes teruggeeft
    - indien nee: open het volgende resultaat en kijk weer of de belangrijkste woorden erin voorkomen
-   - bovenstaande stappen worden herhaald voor de eerste 5 resultaten  <br />
+   - bovenstaande stappen worden herhaald voor de eerste 5 resultaten  
+   - is artikel terug te vinden op bbc (-> moet nog serieus verfijnd worden...)  <br />
   
 **Volgende stappen:**  
    - kijken of het artikel terug te vinden is in een belangrijk mediakanaal
