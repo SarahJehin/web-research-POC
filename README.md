@@ -7,17 +7,17 @@
   > PHP scraping van de archief-pagina van andere sites
 
 **Uitwerking belangrijkste woorden ophalen (filters):**
-  > get words starting with an uppercase, not preceded by a .
-		"Donald Trump decided to build the Mexican wall.  He told this to the Daily Mail." => Donald,Trump,Mexican,Daily,Mail
-  > filter words shorter than 4 characters
-		"The big boss took a look in the factory." => boss,took,look,factory
-  > filter most common English words
-		"They asked Hillary what she thought about the wall" => asked,Hillary,thought,wall
-  > get most common words in article (by amount of occurrences)
-		"Toyota proposed to move to Spain.  'It's all fixed', says Goldman, speechman of Toyota" => Toyota
+  > get words starting with an uppercase, not preceded by a .  
+		"Donald Trump decided to build the Mexican wall.  He told this to the Daily Mail." => Donald,Trump,Mexican,Daily,Mail  
+  > filter words shorter than 4 characters  
+		"The big boss took a look in the factory." => boss,took,look,factory  
+  > filter most common English words  
+		"They asked Hillary what she thought about the wall" => asked,Hillary,thought,wall  
+  > get most common words in article (by amount of occurrences)  
+		"Toyota proposed to move to Spain.  'It's all fixed', says Goldman, speechman of Toyota" => Toyota  
 
 ## 15, 16, 17/12/2016
-**Get most important words from article works okay**
+**Get most important words from article works okay**  
   Filters:
   1. extract words starting with an uppercase
 	$most_important_words_arr = get_uppercase_words($article); 
@@ -41,7 +41,8 @@
 ## 17/12/2016
 **First tests with php scraping (using PHP Simple HTML DOM Parser)**
    - Get simple elements (by id, by classname)
-   - Get children of find results 
+   - Get children of find results <br />
+  
 **Problemen**
    - kan lang duren als het om veel content gaat
    - de content van pagina's die ingeladen worden met Angular wordt niet opgehaald (bvb probleem bij NY Times en Washington Post) :confused:
@@ -55,6 +56,18 @@
          indien nee: het volgende zoekresultaat openen en checken of er minstens 5 van de belangrijkste woorden in voorkomen (enzoverder enzoverder)
       ook op andere nieuwssites de resultaten 1 voor 1 scrapen en checken op vergelijkbare inhoud
 
+## 30/12/2016
+   - geef je zoekwoorden in
+   - geef je volledige artikel in
+   - op snopes eerste zoekresultaat openen en kijken of 5 belangrijkste woorden van artikel erin voorkomen
+   - indien ja: kijk welk resultaat snopes teruggeeft
+   - indien nee: open het volgende resultaat en kijk weer of de belangrijkste woorden erin voorkomen
+   - bovenstaande stappen worden herhaald voor de eerste 5 resultaten  <br />
+  
+**Volgende stappen:**  
+   - kijken of het artikel terug te vinden is in een belangrijk mediakanaal
+   - hoe meer van de belangrijkste woorden erin terugkomen, des te betrouwbaarder
+   - indien het woord 'hoax' of 'false' erin voorkomt --> heel wat minder betrouwbaar
 
 ## Geraadpleegde bronnen
 ### Filteren:
