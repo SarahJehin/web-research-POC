@@ -1,5 +1,14 @@
 <?php
 
+//echo("does this thing even work?");
+
+//if(isset($_POST['submit'])) {
+    //$arr = array('a' => 1, 'b' => 2, 'c' => 3, 'd' => 4, 'e' => 5);
+
+    //echo json_encode($arr);
+//}
+
+
 include 'simple_html_dom.php';
 
 //The most common English words should be filtered from the article (source: https://en.wikipedia.org/wiki/Most_common_words_in_English)
@@ -20,18 +29,24 @@ if(isset($_POST['submit'])) {
     $results = get_key_words($_POST['article'], 5);
     //first search snopes
     $url = search_snopes($_POST['searchwords'], 0);
+    $true_false = "no results";
     if($url) {
         $true_false = open_article_and_check($url, $results, 0);
     }
     else {
-        echo("no results found");
+        //echo("no results found");
     }
     
     //if snopes doesn't have a result, search other newssites
     $extra_points = search_bbc($_POST['searchwords']);
     $trustworthiness = $trustworthiness + $extra_points;
-    echo("betrouwbaarheid: " . $trustworthiness);
-    search_the_independent($_POST['searchwords']);
+    //echo("betrouwbaarheid: " . $trustworthiness);
+    //search_the_independent($_POST['searchwords']);
+    $json_to_return = array(
+        'snopes_result' => $true_false,
+        'trustworthiness' => $trustworthiness,
+        'c' => 3);
+    echo(json_encode($json_to_return));
 }
 
 
@@ -107,20 +122,20 @@ function open_article_and_check($url, $top_words, $result_number) {
         
         
         if($article_relevant) {
-            echo("article seems to be relevant and the result on snopes was ");
+            //echo("article seems to be relevant and the result on snopes was ");
             $true_false = $page->find('.claim-old span span', 0)->plaintext;
-            echo($true_false);
+            //echo($true_false);
             return $true_false;
         }
         else {
-            echo("article was not relevant, let's try the next result");
+            //echo("article was not relevant, let's try the next result");
             $result_number++;
             if($result_number < 5) {
                 //$next_result = $search_test->find('.search-results .item h3 a', $result_number)->href;
                 //$next_url = 'http://www.snopes.com' . $next_result;
                 
                 $next_url = search_snopes($_POST['searchwords'], $result_number);
-                echo("next url: " .$next_url);
+                //echo("next url: " .$next_url);
                 if($next_url) {
                     return open_article_and_check($next_url, $top_words, $result_number);
                 }
@@ -168,6 +183,11 @@ function search_bbc($searchwords) {
         
         //if no match was found, return 0
         return 0;
+
+        //print_r($results_search);
+        
+        //$url_to_open = $search_test->find('ol.results li h1 a', 1)->href;
+        //check_similarity_bbc($url_to_open);
     }
 }
 
@@ -201,19 +221,19 @@ function check_similarity_bbc($url) {
         $top_words = get_key_words($_POST['article'], 20);
         
         foreach($top_words as $top_word) {
-            print_r($top_word);
+            //print_r($top_word);
             $position = strpos($string_to_search_in , $top_word);
             if($position) {
                 $count++;
             }
         }
-        echo($count);
+        //echo($count);
         if($count > 10) {
-            echo("success !!");
+            //echo("success !!");
             return $count;
         }
         else {
-            echo("no match, try the next article...");
+            //echo("no match, try the next article...");
             return false;
         }
         
@@ -231,71 +251,17 @@ function search_the_independent($searchwords) {
 
         $i = 0;
         foreach ($search_test->find('ol.search-results li h2') as $article) {
-            
-            $url_to_open = $search_test->find('ol.search-results li h2 a',$i)->href;
-            
-            $article_found = check_similarity_independent($url_to_open);
-            
-            if($article_found) {
-                //betrouwbaarheid mag ++ gedaan worden
-                return $article_found;
-                //break;
-            }
+            $title = $search_test->find('ol.search-results li h2 a',$i)->href;
+            //echo($title . "    /   ");
+            $results_search[] = $title;
             $i++;
         }
-        
-        //if no match was found, return 0
-        return 0;
 
+        //print_r($results_search);
 
     }
 }
 
-function check_similarity_independent($url) {
-    $page = file_get_html($url);
-    
-    if(!empty($page)){
-        
-        $string_to_search_in = "";
-        
-        //independent ook nog probleem dat de opmaak van artikels niet altijd hetzelfde is... grr... (soms .field-item.even en soms div[itemprop="articleBody"])
-        //put the whole article in one long string to search in
-        $i = 0;
-        foreach ($page->find('div[itemprop="articleBody"] p') as $paragraph) {
-            $result = $page->find('div[itemprop="articleBody"] p', $i)->plaintext;
-            $string_to_search_in = $string_to_search_in . $result;
-            $i++;
-        }
-        echo($string_to_search_in);
-        $article_relevant = true;
-        
-        $string_to_search_in = str_replace('"', "", $string_to_search_in);
-        
-        //count is the amount of top words occur in the article found
-        $count = 0;
-        
-        $top_words = get_key_words($_POST['article'], 20);
-        
-        foreach($top_words as $top_word) {
-            print_r($top_word);
-            $position = strpos($string_to_search_in , $top_word);
-            if($position) {
-                $count++;
-            }
-        }
-        echo($count);
-        if($count > 10) {
-            echo("success !!");
-            echo($url);
-            return $count;
-        }
-        else {
-            echo("no match, try the next article...");
-            return false;
-        }
-        
-    }
-}
 
 
 
@@ -437,65 +403,5 @@ function starts_with_upper($str) {
 
 
 
+
 ?>
-
-
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Open search result</title>
-    <style>
-        .snopes_result {
-            background-color: #cecece;
-        }
-    </style>
-</head>
-<body>
-    
-    <main>
-        <div>
-            <p>Zoek naar iets op snopes.com, open het eerste zoekresultaat en geef of het true of false is.</p>
-            
-            <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
-                <div>
-                    <label for="searchwords">Zoekwoorden:</label>
-                    <input type="text" name="searchwords" id="searchwords">
-                </div>
-                <div>
-                    <label for="article">Artikel</label>
-                    <textarea name="article" id="article"></textarea>
-                </div>
-                <div>
-                    <label for="date">Datum van publicatie:</label>
-                    <input type="date" name="date" id="date">
-                </div>
-                <input type="submit" name="submit" value="Zoek">
-            </form>
-            
-        </div>
-        
-        <div>
-            <h2>Most important words:</h2>
-            <?php if(isset($results)): ?>
-            <?php foreach($results as $result): ?>
-            <div><?php echo $result ?></div>
-            <?php endforeach ?>
-            <?php endif ?>
-    
-        </div>
-        
-        <?php if(isset($true_false)): ?>
-        <div class="snopes_result">
-            <h2>Snopes result:</h2>
-            <p>The article was found on snopes.com and was declared <?php echo $true_false ?></p>
-        </div>
-        <?php endif ?>
-        
-    </main>
-    
-    
-</body>
-</html>

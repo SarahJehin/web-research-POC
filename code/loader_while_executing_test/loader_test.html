@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Open search result</title>
+    <style>
+        .snopes {
+            background-color: #cecece;
+        }
+    </style>
+</head>
+<body>
+    
+    <main>
+        <div>
+            <p>Enter your keywords and the article below:</p>
+            
+            <form id="target" method="post" action="">
+                <div>
+                    <label for="searchwords">Zoekwoorden:</label>
+                    <input type="text" name="searchwords" id="searchwords">
+                </div>
+                <div>
+                    <label for="article">Artikel</label>
+                    <textarea name="article" id="article"></textarea>
+                </div>
+                <div>
+                    <label for="date">Datum van publicatie:</label>
+                    <input type="date" name="date" id="date">
+                </div>
+                <input type="submit" name="submit" value="Zoek">
+            </form>
+            
+        </div>
+        
+        
+        <div class="loading">
+            <h4>We're checking the article's reliability</h4>
+            <img id="loading_spinner" src="loading_icon.gif">
+        </div>
+        
+        <div class="result">
+            <div class="snopes">
+                <h2>Snopes result:</h2>
+                <p>The article was found on snopes.com and was declared <span class="snopes_result"></span></p>
+            </div>
+            
+            <div>
+                <p>
+                    We checked two sourced and found some similar articles from which we conclude the reliability is:
+                </p>
+                <div class="trustworthiness"></div>
+            </div>
+            
+        </div>
+        
+        
+        
+    </main>
+    
+    <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script>
+        (function ( window, document, $, undefined ) {
+            console.log("test");
+            
+            //$("#loading_spinner").hide();
+            $('.loading').hide();
+            $('.result').hide();
+            
+            $( "#target" ).submit(function( event ) {
+              //alert( "Handler for .submit() called." );
+              event.preventDefault();
+                console.log('ja??');
+                //$("#loading_spinner").show();
+                $(".loading").show();
+                
+                /*$.post( "executable.php", { submit: "set", searchwords: $("#searchwords").val(), article: $('#article').val()} ).done(function( data ) {
+                    console.log("vreemd...");
+                    console.log( "Data Loaded: " + data );
+                    console.log(data);
+                    console.log(data.snopes_result);
+                    $(".snopes_result").text(data.snopes_result);
+                    $(".trustworthiness").text(data.trustworthiness);
+                    $(".loading").hide();
+                    //$("#loading_spinner").hide();
+                    $(".result").show();
+                  });*/
+                
+                $.post( "executable.php", { submit: "set", searchwords: $("#searchwords").val(), article: $('#article').val()} , function( data ) {
+                    console.log(data);
+                    console.log(data.snopes_result);
+                    $(".snopes_result").text(data.snopes_result);
+                    $(".trustworthiness").text(data.trustworthiness);
+                    $(".loading").hide();
+                    //$("#loading_spinner").hide();
+                    $(".result").show();
+                }, "json");
+                
+                /*$.getJSON( "executable.php", function( data ) {
+                    console.log(data);
+                    console.log(data.snopes_result);
+                    $(".loading").hide();
+                    $(".result").show();
+                });*/
+                
+            });
+            
+        })(window, window.document, window.jQuery);
+    </script>
+    
+</body>
+</html>

@@ -49,8 +49,8 @@
 
 ## 18/12/2016
    - scraping van newssites en scopes.com (haal de titel van zoekresultaten van bepaalde termen op)
-   - op snopes checken of het eerste zoekresultaat van bepaalde termen true of false is
-   - volgende stappen:
+   - op snopes checken of het eerste zoekresultaat van bepaalde termen true of false is  <br />
+**Volgende stappen:**  
       op snopes checken of de inhoud van het eerste zoekresultaat minstens 5 van de belangrijkste woorden van het oorspronkelijke artikel bevat
          indien ja: checken of het door snopes.com als true of false beschouwt wordt en returnen
          indien nee: het volgende zoekresultaat openen en checken of er minstens 5 van de belangrijkste woorden in voorkomen (enzoverder enzoverder)
@@ -69,6 +69,10 @@
    - kijken of het artikel terug te vinden is in een belangrijk mediakanaal
    - hoe meer van de belangrijkste woorden erin terugkomen, des te betrouwbaarder
    - indien het woord 'hoax' of 'false' erin voorkomt --> heel wat minder betrouwbaar
+
+## 3/*12/2016
+   - loader while executing php
+   - check on bbc en the independent (betrouwbaarheid wordt toegevoegd als er een vergelijkbaar artikel wordt teruggevonden)
 
 ## Geraadpleegde bronnen
 ### Filteren:
