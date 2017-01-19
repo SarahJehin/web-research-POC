@@ -70,9 +70,14 @@
    - hoe meer van de belangrijkste woorden erin terugkomen, des te betrouwbaarder
    - indien het woord 'hoax' of 'false' erin voorkomt --> heel wat minder betrouwbaar
 
-## 3/*12/2016
+## 31/12/2016
    - loader while executing php
    - check on bbc en the independent (betrouwbaarheid wordt toegevoegd als er een vergelijkbaar artikel wordt teruggevonden)
+
+## 18, 19/01/2017
+   - hoe goed is het artikel geschreven --> met online spelling checkers
+   - http://www.onlinecorrection.com/ geeft het aantal fouten terug + vindt ook fouten zoals your vs you're
+   - met curl post naar onlinecorrection.com -> blijft oneindig loaden.  Ontbreekt er data bij post??
 
 ## Geraadpleegde bronnen
 ### Filteren:
@@ -87,5 +92,13 @@ https://sourceforge.net/projects/simplehtmldom/files/
 http://nimishprabhu.com/top-10-best-usage-examples-php-simple-html-dom-parser.html  
 http://simplehtmldom.sourceforge.net/manual.htm  
 http://stackoverflow.com/questions/36275859/simple-html-dom-parsing-first-child-into-an-array  
+### Post naar url met curl
+http://www.html-form-guide.com/php-form/php-form-submit.html  
+http://stackoverflow.com/questions/17270335/creating-a-robot-to-fill-form-with-some-pages-in  
+https://davidwalsh.name/curl-post  
+### Online English spelling checkers
+http://www.onlinecorrection.com/ (dit is één van de weinige die ook het aantal fouten teruggeeft)
+
+
 
 

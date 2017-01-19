@@ -30,8 +30,10 @@ if(isset($_POST['submit'])) {
     //if snopes doesn't have a result, search other newssites
     $extra_points = search_bbc($_POST['searchwords']);
     $trustworthiness = $trustworthiness + $extra_points;
-    echo("betrouwbaarheid: " . $trustworthiness);
-    search_the_independent($_POST['searchwords']);
+    //echo("snopes: " . $true_false . " en betrouwbaarheid: " . $trustworthiness);
+    $extra_points2 = search_the_independent($_POST['searchwords']);
+    $trustworthiness = $trustworthiness + $extra_points;
+    echo("snopes: " . $true_false . " en betrouwbaarheid: " . $trustworthiness);
 }
 
 
@@ -113,14 +115,14 @@ function open_article_and_check($url, $top_words, $result_number) {
             return $true_false;
         }
         else {
-            echo("article was not relevant, let's try the next result");
+            //echo("article was not relevant, let's try the next result");
             $result_number++;
             if($result_number < 5) {
                 //$next_result = $search_test->find('.search-results .item h3 a', $result_number)->href;
                 //$next_url = 'http://www.snopes.com' . $next_result;
                 
                 $next_url = search_snopes($_POST['searchwords'], $result_number);
-                echo("next url: " .$next_url);
+                //echo("next url: " .$next_url);
                 if($next_url) {
                     return open_article_and_check($next_url, $top_words, $result_number);
                 }
@@ -201,7 +203,7 @@ function check_similarity_bbc($url) {
         $top_words = get_key_words($_POST['article'], 20);
         
         foreach($top_words as $top_word) {
-            print_r($top_word);
+            //print_r($top_word);
             $position = strpos($string_to_search_in , $top_word);
             if($position) {
                 $count++;
@@ -266,7 +268,7 @@ function check_similarity_independent($url) {
             $string_to_search_in = $string_to_search_in . $result;
             $i++;
         }
-        echo($string_to_search_in);
+        //echo($string_to_search_in);
         $article_relevant = true;
         
         $string_to_search_in = str_replace('"', "", $string_to_search_in);
@@ -277,7 +279,6 @@ function check_similarity_independent($url) {
         $top_words = get_key_words($_POST['article'], 20);
         
         foreach($top_words as $top_word) {
-            print_r($top_word);
             $position = strpos($string_to_search_in , $top_word);
             if($position) {
                 $count++;

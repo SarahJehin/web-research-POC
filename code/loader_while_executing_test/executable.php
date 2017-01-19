@@ -42,10 +42,11 @@ if(isset($_POST['submit'])) {
     $trustworthiness = $trustworthiness + $extra_points;
     //echo("betrouwbaarheid: " . $trustworthiness);
     //search_the_independent($_POST['searchwords']);
+    //er is altijd één van de 2 die niet klopt... ofwel het snopes result, ofwel de trustworthiness :/ en in het gewone php script werkt het wel :/ ...
     $json_to_return = array(
         'snopes_result' => $true_false,
         'trustworthiness' => $trustworthiness,
-        'c' => 3);
+        'searchwords' => $_POST['searchwords']);
     echo(json_encode($json_to_return));
 }
 

@@ -66,6 +66,7 @@
             //$("#loading_spinner").hide();
             $('.loading').hide();
             $('.result').hide();
+            $('.snopes').hide();
             
             $( "#target" ).submit(function( event ) {
               //alert( "Handler for .submit() called." );
@@ -93,6 +94,12 @@
                     $(".trustworthiness").text(data.trustworthiness);
                     $(".loading").hide();
                     //$("#loading_spinner").hide();
+                    console.log(data.snopes_result.toLowerCase() + " = false ?");
+                    $test = data.snopes_result.toLowerCase();
+                    if($test != "not in 5 first results") {
+                        console.log("test");
+                        $('.snopes').show();
+                    }
                     $(".result").show();
                 }, "json");
                 
