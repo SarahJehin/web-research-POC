@@ -2,11 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Open search result</title>
+    <title>Factchecker</title>
     <style>
-        .snopes {
-            background-color: #cecece;
+        body {
+            font-family: "Calibri", sans-serif;
         }
+        main {
+            width: 500px;
+            margin: 0 auto;
+            margin-top: 50px;
+        }
+        
+        form div {
+            margin-bottom: 15px;
+        }
+        
+        form label,
+        form input,
+        form textarea {
+            display: block;
+            width: 100%;
+            font-family: inherit;
+            font-size: inherit;
+        }
+        
+        form input,
+        form textarea {
+            width: 95.5%;
+            padding: 5px 2%;
+            border: 1px solid #666;
+        }
+        
+        form textarea {
+            height: 150px;
+        }
+        
+        
+        .loading {
+            text-align: center;
+        }
+        
+        .loading img {
+            width: 100%;
+            height: auto;
+        }
+        
+        .snopes {
+            background-color: #fbda64;
+            padding: 5px;
+        }
+        
+        .trustworthiness {
+            padding: 10px;
+            font-size: 2em;
+            border-radius: 50%;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            width: 40px;
+            height: 40px;
+            margin: 0 auto;
+        }
+        
+        .trustworthiness.good {
+            background-color: #2d9848;
+        }
+        
+        .trustworthiness.bad {
+            background-color: #ad2e2e;
+        }
+        
+        .trustworthiness.average {
+            background-color: #c6701a;
+        }
+        
     </style>
 </head>
 <body>
@@ -17,17 +86,19 @@
             
             <form id="target" method="post" action="">
                 <div>
-                    <label for="searchwords">Zoekwoorden:</label>
+                    <label for="searchwords">Keywords:</label>
                     <input type="text" name="searchwords" id="searchwords">
                 </div>
                 <div>
                     <label for="article">Artikel</label>
                     <textarea name="article" id="article"></textarea>
                 </div>
+                <!--
                 <div>
                     <label for="date">Datum van publicatie:</label>
                     <input type="date" name="date" id="date">
                 </div>
+                -->
                 <input type="submit" name="submit" value="Zoek">
             </form>
             
@@ -42,12 +113,12 @@
         <div class="result">
             <div class="snopes">
                 <h2>Snopes result:</h2>
-                <p>The article was found on snopes.com and was declared <span class="snopes_result"></span></p>
+                <p>This article was found on snopes.com and was declared <span class="snopes_result"></span></p>
             </div>
             
             <div>
                 <p>
-                    We checked two sourced and found some similar articles from which we conclude the reliability is:
+                    We checked two sources and found some similar articles from which we conclude the reliability is:
                 </p>
                 <div class="trustworthiness"></div>
             </div>
@@ -74,6 +145,7 @@
                 console.log('ja??');
                 //$("#loading_spinner").show();
                 $(".loading").show();
+                window.scrollTo(0, 500);
                 
                 /*$.post( "executable.php", { submit: "set", searchwords: $("#searchwords").val(), article: $('#article').val()} ).done(function( data ) {
                     console.log("vreemd...");
@@ -92,6 +164,15 @@
                     console.log(data.snopes_result);
                     $(".snopes_result").text(data.snopes_result);
                     $(".trustworthiness").text(data.trustworthiness);
+                    if(data.trustworthiness > 70) {
+                        $(".trustworthiness").addClass("good");
+                    }
+                    else if(data.trustworthiness < 35) {
+                        $(".trustworthiness").addClass("bad");
+                    }
+                    else {
+                        $(".trustworthiness").addClass("average");
+                    }
                     $(".loading").hide();
                     //$("#loading_spinner").hide();
                     console.log(data.snopes_result.toLowerCase() + " = false ?");

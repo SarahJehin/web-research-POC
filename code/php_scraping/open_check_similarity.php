@@ -3,7 +3,9 @@
 include 'simple_html_dom.php';
 
 //The most common English words should be filtered from the article (source: https://en.wikipedia.org/wiki/Most_common_words_in_English)
-$most_common_english_words = array("have", "with", "this", "that", "were", "from", "they", "will", "would", "there", "their", "what", "about", "which", "when", "make", "like", "time", "just", "know", "tak", "into", "your", "good", "some", "could", "them", "than", "then", "look", "only", "come", "over", "think", "also", "back", "after", "these", "here", "made", "like", "almost", "later", "told", "said", "been", "didn", "most");
+$most_common_english_words = array("have", "with", "this", "that", "were", "from", "they", "will", "would", "there", "their", "what", "about", "which", "when", "make", "like", "time", "just", "know", "tak", "into", "your", "good", "some", "could", "them", "than", "then", "look", "only", "come", "over", "think", "also", "back", "after", "these", "here", "made", "like", "almost", "later", "told", "said", "been", "didn", "most", "thing", "word", "things");
+
+$critical_words = array("false", "hoax", "fake");
 
 //trustworthiness level starts at 50, it decreases when [I don't know yet...] and increases when an article was found on trustworthty media
 $trustworthiness = 50;
@@ -17,9 +19,10 @@ $trustworthiness = 50;
 
 
 if(isset($_POST['submit'])) {
-    $results = get_key_words($_POST['article'], 5);
+    $results = get_key_words($_POST['article'], 6);
     //first search snopes
     $url = search_snopes($_POST['searchwords'], 0);
+    echo($url);
     if($url) {
         $true_false = open_article_and_check($url, $results, 0);
     }
@@ -27,13 +30,15 @@ if(isset($_POST['submit'])) {
         echo("no results found");
     }
     
+    
     //if snopes doesn't have a result, search other newssites
     $extra_points = search_bbc($_POST['searchwords']);
     $trustworthiness = $trustworthiness + $extra_points;
     //echo("snopes: " . $true_false . " en betrouwbaarheid: " . $trustworthiness);
     $extra_points2 = search_the_independent($_POST['searchwords']);
-    $trustworthiness = $trustworthiness + $extra_points;
+    $trustworthiness = $trustworthiness + $extra_points2;
     echo("snopes: " . $true_false . " en betrouwbaarheid: " . $trustworthiness);
+    
 }
 
 
@@ -93,7 +98,7 @@ function open_article_and_check($url, $top_words, $result_number) {
         }
         
         //echo($string_to_search_in);
-        $article_relevant = true;
+        $article_relevant = 6;
         
         $string_to_search_in = str_replace('"', "", $string_to_search_in);
         
@@ -102,13 +107,13 @@ function open_article_and_check($url, $top_words, $result_number) {
             $position = strpos($string_to_search_in , $top_word);
             
             if(!$position) {
-                $article_relevant = false;
-                break;
+                $article_relevant--;
+                //break;
             }
         }
         
-        
-        if($article_relevant) {
+        echo($article_relevant);
+        if($article_relevant > 3) {
             echo("article seems to be relevant and the result on snopes was ");
             $true_false = $page->find('.claim-old span span', 0)->plaintext;
             echo($true_false);
@@ -176,6 +181,8 @@ function search_bbc($searchwords) {
 //checks how many of the most important words of the original article match the article from the search result.
 //returns the amount of matches
 function check_similarity_bbc($url) {
+    global $critical_words;
+    
     //open the article and check whether it's similar enough
     $page = file_get_html($url);
     
@@ -209,9 +216,19 @@ function check_similarity_bbc($url) {
                 $count++;
             }
         }
+        
+        
         echo($count);
         if($count > 10) {
             echo("success !!");
+            //var_dump($critical_words);
+            foreach($critical_words as $critical_w) {
+                if(strpos($string_to_search_in , $critical_w)) {
+                    //if the word hoax, false or fake exists, score minus
+                    $count = (-20);
+                }
+            }
+            
             return $count;
         }
         else {

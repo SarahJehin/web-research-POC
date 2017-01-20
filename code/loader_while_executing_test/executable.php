@@ -1,20 +1,14 @@
 <?php
 
-//echo("does this thing even work?");
-
-//if(isset($_POST['submit'])) {
-    //$arr = array('a' => 1, 'b' => 2, 'c' => 3, 'd' => 4, 'e' => 5);
-
-    //echo json_encode($arr);
-//}
-
-
 include 'simple_html_dom.php';
 
 //The most common English words should be filtered from the article (source: https://en.wikipedia.org/wiki/Most_common_words_in_English)
-$most_common_english_words = array("have", "with", "this", "that", "were", "from", "they", "will", "would", "there", "their", "what", "about", "which", "when", "make", "like", "time", "just", "know", "tak", "into", "your", "good", "some", "could", "them", "than", "then", "look", "only", "come", "over", "think", "also", "back", "after", "these", "here", "made", "like", "almost", "later", "told", "said", "been", "didn", "most");
+$most_common_english_words = array("have", "with", "this", "that", "were", "from", "they", "will", "would", "there", "their", "what", "about", "which", "when", "make", "like", "time", "just", "know", "take", "into", "your", "good", "some", "could", "them", "than", "then", "look", "only", "come", "over", "think", "also", "back", "after", "these", "here", "made", "like", "almost", "later", "told", "said", "been", "didn", "most");
 
-//trustworthiness level starts at 50, it decreases when [I don't know yet...] and increases when an article was found on trustworthty media
+//when the words below are found in a relevant article, the score will decrease
+$critical_words = array("false", "hoax", "fake");
+
+//trustworthiness level starts at 50, it decreases when there are a lot of spelling mistakes and increases when an article was found on trustworthty media
 $trustworthiness = 50;
 
 //get important words from article
@@ -26,7 +20,7 @@ $trustworthiness = 50;
 
 
 if(isset($_POST['submit'])) {
-    $results = get_key_words($_POST['article'], 5);
+    $results = get_key_words($_POST['article'], 6);
     //first search snopes
     $url = search_snopes($_POST['searchwords'], 0);
     $true_false = "no results";
@@ -41,8 +35,31 @@ if(isset($_POST['submit'])) {
     $extra_points = search_bbc($_POST['searchwords']);
     $trustworthiness = $trustworthiness + $extra_points;
     //echo("betrouwbaarheid: " . $trustworthiness);
-    //search_the_independent($_POST['searchwords']);
-    //er is altijd één van de 2 die niet klopt... ofwel het snopes result, ofwel de trustworthiness :/ en in het gewone php script werkt het wel :/ ...
+    $extra_points2 = search_the_independent($_POST['searchwords']);
+    $trustworthiness = $trustworthiness + $extra_points2;
+    
+    //check spelling
+    $limited_text_for_check = substr($_POST['article'], 0, 5000);
+    $limited_text_for_check = preg_replace('/\s+/', '+', $limited_text_for_check);
+    $limited_text_for_check = str_replace('?', '%3F', $limited_text_for_check);
+    $limited_text_for_check = str_replace(',', '%2C', $limited_text_for_check);
+    //use API for spelling check
+    $data = json_decode(file_get_contents('https://api.textgears.com/check.php?text=' . $limited_text_for_check . '&key=DEMO_KEY'), true);
+    
+    //convert data to array (data = all errors + better alternatives)
+    $data = (array)$data;
+    
+    //get errors count
+    $errors_count = count((array)$data['errors']);
+    
+    echo("amount of errors in the text: " . $errors_count);
+    
+    $score -= $errors_count;
+    echo($score);
+    
+    
+    
+    
     $json_to_return = array(
         'snopes_result' => $true_false,
         'trustworthiness' => $trustworthiness,
@@ -69,7 +86,6 @@ function search_snopes($searchwords, $result_number) {
         else {
             return false;
         }
-
     }
 }
 
@@ -93,7 +109,6 @@ function open_article_and_check($url, $top_words, $result_number) {
         $j = 0;
         foreach ($page->find('div[itemprop="reviewBody"] p') as $paragraph2) {
             $result2 = $page->find('div[itemprop="reviewBody"] p', $j)->plaintext;
-            //echo($result2);
             $string_to_search_in = $string_to_search_in . $result2;
             $j++;
         }
@@ -101,28 +116,21 @@ function open_article_and_check($url, $top_words, $result_number) {
         $k = 0;
         foreach ($page->find('div[itemprop="reviewBody"] blockquote p') as $paragraph3) {
             $result3 = $page->find('div[itemprop="reviewBody"] blockquote p', $k)->plaintext;
-            //echo($result3);
             $string_to_search_in = $string_to_search_in . $result3;
             $k++;
         }
         
-        //echo($string_to_search_in);
-        $article_relevant = true;
-        
+        $article_relevant = 6;
         $string_to_search_in = str_replace('"', "", $string_to_search_in);
-        
         
         foreach($top_words as $top_word) {
             $position = strpos($string_to_search_in , $top_word);
-            
             if(!$position) {
-                $article_relevant = false;
-                break;
+                $article_relevant--;
             }
         }
         
-        
-        if($article_relevant) {
+        if($article_relevant > 3) {
             //echo("article seems to be relevant and the result on snopes was ");
             $true_false = $page->find('.claim-old span span', 0)->plaintext;
             //echo($true_false);
@@ -157,7 +165,6 @@ function open_article_and_check($url, $top_words, $result_number) {
 //bbc
 function search_bbc($searchwords) {
     $search_string = str_replace(" ", "+", $searchwords);
-    //var_dump('http://www.bbc.co.uk/search?q=' . $search_string . '&sa_f=search-product&scope=');
     $search_test = file_get_html('http://www.bbc.co.uk/search?q=' . $search_string . '&sa_f=search-product&scope=');
     
     if(!empty($search_test)){
@@ -176,9 +183,7 @@ function search_bbc($searchwords) {
             if($article_found) {
                 //betrouwbaarheid mag ++ gedaan worden
                 return $article_found;
-                //break;
             }
-            
             $i++;
         }
         
@@ -195,6 +200,8 @@ function search_bbc($searchwords) {
 //checks how many of the most important words of the original article match the article from the search result.
 //returns the amount of matches
 function check_similarity_bbc($url) {
+    global $critical_words;
+    
     //open the article and check whether it's similar enough
     $page = file_get_html($url);
     
@@ -231,6 +238,12 @@ function check_similarity_bbc($url) {
         //echo($count);
         if($count > 10) {
             //echo("success !!");
+            foreach($critical_words as $critical_w) {
+                if(strpos($string_to_search_in , $critical_w)) {
+                    //if the word hoax, false or fake exists, score minus
+                    $count = (-20);
+                }
+            }
             return $count;
         }
         else {
@@ -252,14 +265,75 @@ function search_the_independent($searchwords) {
 
         $i = 0;
         foreach ($search_test->find('ol.search-results li h2') as $article) {
-            $title = $search_test->find('ol.search-results li h2 a',$i)->href;
-            //echo($title . "    /   ");
-            $results_search[] = $title;
+            
+            $url_to_open = $search_test->find('ol.search-results li h2 a',$i)->href;
+            
+            $article_found = check_similarity_independent($url_to_open);
+            
+            if($article_found) {
+                //betrouwbaarheid mag ++ gedaan worden
+                return $article_found;
+                //break;
+            }
             $i++;
         }
+        
+        //if no match was found, return 0
+        return 0;
 
-        //print_r($results_search);
 
+    }
+}
+
+function check_similarity_independent($url) {
+    global $critical_words;
+    $page = file_get_html($url);
+    
+    if(!empty($page)){
+        
+        $string_to_search_in = "";
+        
+        //independent ook nog probleem dat de opmaak van artikels niet altijd hetzelfde is... grr... (soms .field-item.even en soms div[itemprop="articleBody"])
+        //put the whole article in one long string to search in
+        $i = 0;
+        foreach ($page->find('div[itemprop="articleBody"] p') as $paragraph) {
+            $result = $page->find('div[itemprop="articleBody"] p', $i)->plaintext;
+            $string_to_search_in = $string_to_search_in . $result;
+            $i++;
+        }
+        //echo($string_to_search_in);
+        $article_relevant = true;
+        
+        $string_to_search_in = str_replace('"', "", $string_to_search_in);
+        
+        //count is the amount of top words occur in the article found
+        $count = 0;
+        
+        $top_words = get_key_words($_POST['article'], 20);
+        
+        foreach($top_words as $top_word) {
+            $position = strpos($string_to_search_in , $top_word);
+            if($position) {
+                $count++;
+            }
+        }
+        //echo($count);
+        if($count > 10) {
+            //echo("success !!");
+            //echo($url);
+            foreach($critical_words as $critical_w) {
+                if(strpos($string_to_search_in , $critical_w)) {
+                    //if the word hoax, false or fake exists, score minus
+                    $count = (-20);
+                }
+            }
+            return $count;
+        }
+        else {
+            //echo("no match, try the next article...");
+            return false;
+        }
+        
     }
 }
 

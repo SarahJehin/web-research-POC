@@ -77,7 +77,13 @@
 ## 18, 19/01/2017
    - hoe goed is het artikel geschreven --> met online spelling checkers
    - http://www.onlinecorrection.com/ geeft het aantal fouten terug + vindt ook fouten zoals your vs you're
-   - met curl post naar onlinecorrection.com -> blijft oneindig loaden.  Ontbreekt er data bij post??
+   - met curl post naar onlinecorrection.com -> blijft oneindig loaden.  Ontbreekt er data bij post??  
+
+## 20/01/2017
+   - spellingcheck met api ipv curl
+   - mogelijkheid is https://textgears.com/api/ , zij geven het aantal errors terug + verbeteringen
+   - per fout worden er punten afgetrokken van de betrouwbaarheid van het artikel
+
 
 ## Geraadpleegde bronnen
 ### Filteren:
@@ -96,8 +102,10 @@ http://stackoverflow.com/questions/36275859/simple-html-dom-parsing-first-child-
 http://www.html-form-guide.com/php-form/php-form-submit.html  
 http://stackoverflow.com/questions/17270335/creating-a-robot-to-fill-form-with-some-pages-in  
 https://davidwalsh.name/curl-post  
-### Online English spelling checkers
+### Online English spelling checkers (incl API's)
 http://www.onlinecorrection.com/ (dit is één van de weinige die ook het aantal fouten teruggeeft)
+https://textgears.com/api/  
+
 
 
 
