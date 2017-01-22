@@ -17,25 +17,25 @@
 		"Toyota proposed to move to Spain.  'It's all fixed', says Goldman, speechman of Toyota" => Toyota  
 
 ## 15, 16, 17/12/2016
-**Get most important words from article works okay**  
+**Get most important words from article works pretty good**  
   Filters:
-  1. extract words starting with an uppercase
+  1. extract words starting with an uppercase  
 	$most_important_words_arr = get_uppercase_words($article); 
-  2. get amount of occurrencies of these uppercase words
+  2. get amount of occurrencies of these uppercase words  
 	$most_important_words_with_count = get_arr_with_count($most_important_words_arr);
-  3. convert article to array of words
+  3. convert article to array of words  
 	$article_arr  = explode(" ", str_replace(array("’", PHP_EOL), " ", str_replace(array('.', ','), "", $article)));
-  4. remove words that are already in the $most_important_words_arr 
+  4. remove words that are already in the $most_important_words_arr   
 	$article_arr = remove_matches($article_arr, $most_important_words_arr);
-  5. filter out the most common English words (e.g. like, have, maybe, ...)
+  5. filter out the most common English words (e.g. like, have, maybe, ...)  
 	$article_arr = remove_most_common_words($article_arr, $most_common_english_words);
-  6. get amount of occurrencies of the remaining words in the article
+  6. get amount of occurrencies of the remaining words in the article  
 	$article_word_count = get_arr_with_count($article_arr);
-  7. merge the two word arrays
+  7. merge the two word arrays  
 	$merged_count_arr = array_merge($most_important_words_with_count, $article_word_count);
-  8. calculate the importance weight based on amount of occurrencies and upper/lowercase first character
+  8. calculate the importance weight based on amount of occurrencies and upper/lowercase first character  
 	$importance_weight_arr = get_words_with_importance($merged_count_arr);
-  9. order this arr from most important to least important and get the first 8 results
+  9. order this arr from most important to least important and get the first 8 results  
 	var_dump(get_top_words($importance_weight_arr, 8));
 
 ## 17/12/2016
@@ -45,7 +45,7 @@
   
 **Problemen**
    - kan lang duren als het om veel content gaat
-   - de content van pagina's die ingeladen worden met Angular wordt niet opgehaald (bvb probleem bij NY Times en Washington Post) :confused:
+   - de content van pagina's die ingeladen worden met Angular wordt niet opgehaald (bvb probleem bij NY Times en Washington Post)
 
 ## 18/12/2016
    - scraping van newssites en scopes.com (haal de titel van zoekresultaten van bepaalde termen op)
@@ -84,6 +84,13 @@
    - mogelijkheid is https://textgears.com/api/ , zij geven het aantal errors terug + verbeteringen
    - per fout worden er punten afgetrokken van de betrouwbaarheid van het artikel
 
+## 21/01/2017
+   - score van api gebruiken ipv punten aftrekken per fout
+   - pspell van php zelf is ook een optie om te zien hoeveel fouten erin voorkomen (maar api werkt beter)
+
+## 22/01/2017
+   - zoekwoorden afleiden uit combinatie van titel en artikel (-> werkt goed voor bepaalde artikels, maar is vrij onnauwkeurig voor andere artikels)
+
 
 ## Geraadpleegde bronnen
 ### Filteren:
@@ -105,6 +112,11 @@ https://davidwalsh.name/curl-post
 ### Online English spelling checkers (incl API's)
 http://www.onlinecorrection.com/ (dit is één van de weinige die ook het aantal fouten teruggeeft)
 https://textgears.com/api/  
+http://www.hackingwithphp.com/16/7/1/calculating-similarity-of-words (met pspell fouten terugvinden)  
+### Vergelijken van overeenkomst van strings / artikels (allemaal te onnauwkeurig...)
+http://php.net/manual/en/function.similar-text.php  
+https://cambiatablog.wordpress.com/2011/03/25/algorithm-for-string-similarity-better-than-levenshtein-and-similar_text/  
+https://github.com/akalongman/php-string-compare
 
 
 

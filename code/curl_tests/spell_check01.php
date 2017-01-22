@@ -32,9 +32,26 @@ if(isset($_POST["submit"])) {
     //get errors count
     $errors_count = count((array)$data['errors']);
     
-    echo("amount of errors in the text: " . $errors_count);
+    $api_score = $data['score'];
+    if($api_score >= 0 && $api_score <= 40) {
+        $down_score = 30;
+    }
+    else if($api_score > 40 && $api_score <= 60) {
+        $down_score = 20;
+    }
+    else if($api_score > 60 && $api_score <= 75) {
+        $down_score = 5;
+    }
+    else {
+        $down_score = 0;
+    }
     
-    $score -= $errors_count;
+    $score = $score-$down_score;
+    
+    
+    //echo("amount of errors in the text: " . $errors_count);
+    
+    //$score -= $errors_count;
     echo($score);
     
 }

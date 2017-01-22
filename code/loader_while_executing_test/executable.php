@@ -6,7 +6,7 @@ include 'simple_html_dom.php';
 $most_common_english_words = array("have", "with", "this", "that", "were", "from", "they", "will", "would", "there", "their", "what", "about", "which", "when", "make", "like", "time", "just", "know", "take", "into", "your", "good", "some", "could", "them", "than", "then", "look", "only", "come", "over", "think", "also", "back", "after", "these", "here", "made", "like", "almost", "later", "told", "said", "been", "didn", "most");
 
 //when the words below are found in a relevant article, the score will decrease
-$critical_words = array("false", "hoax", "fake");
+$critical_words = array("false", "hoax", "fake", "staged", "scam");
 
 //trustworthiness level starts at 50, it decreases when there are a lot of spelling mistakes and increases when an article was found on trustworthty media
 $trustworthiness = 50;
@@ -26,20 +26,39 @@ if(isset($_POST['submit'])) {
     $true_false = "no results";
     if($url) {
         $true_false = open_article_and_check($url, $results, 0);
+        if(strtolower($true_false) && strtolower($true_false) != "not in 5 first results") {
+            $trustworthiness = $trustworthiness + 30;
+        }
+        else if(!strtolower($true_false)) {
+            $trustworthiness = $trustworthiness - 30;
+        }
     }
     else {
         //echo("no results found");
     }
     
-    //if snopes doesn't have a result, search other newssites
+    $articles_found = 0;
+    //search other newssites
     $extra_points = search_bbc($_POST['searchwords']);
     $trustworthiness = $trustworthiness + $extra_points;
+    if($extra_points > 0) {
+        $articles_found++;
+    }
+    else {
+        $trustworthiness = $trustworthiness - 5;
+    }
     //echo("betrouwbaarheid: " . $trustworthiness);
     $extra_points2 = search_the_independent($_POST['searchwords']);
     $trustworthiness = $trustworthiness + $extra_points2;
+    if($extra_points2 > 0) {
+         $articles_found++;
+     }
+     else {
+         $trustworthiness = $trustworthiness - 5;
+     }
     
     //check spelling
-    $limited_text_for_check = substr($_POST['article'], 0, 5000);
+    $limited_text_for_check = substr($_POST['article'], 0, 10000);
     $limited_text_for_check = preg_replace('/\s+/', '+', $limited_text_for_check);
     $limited_text_for_check = str_replace('?', '%3F', $limited_text_for_check);
     $limited_text_for_check = str_replace(',', '%2C', $limited_text_for_check);
@@ -49,21 +68,35 @@ if(isset($_POST['submit'])) {
     //convert data to array (data = all errors + better alternatives)
     $data = (array)$data;
     
+    /*
     //get errors count
     $errors_count = count((array)$data['errors']);
+    //correction of 10 for errors (mostly 10 mistakes compared to the real amount of mistakes)
+    $errors_count -= 10;
+    */
     
-    echo("amount of errors in the text: " . $errors_count);
+    //beter met score van api werken
+    $api_score = $data['score'];
+    if($api_score >= 0 && $api_score <= 40) {
+        $down_score = 30;
+    }
+    else if($api_score > 40 && $api_score <= 60) {
+        $down_score = 20;
+    }
+    else if($api_score > 60 && $api_score <= 75) {
+        $down_score = 5;
+    }
+    else {
+        $down_score = 0;
+    }
     
-    $score -= $errors_count;
-    echo($score);
-    
-    
-    
+    $trustworthiness = $trustworthiness-$down_score;
     
     $json_to_return = array(
         'snopes_result' => $true_false,
         'trustworthiness' => $trustworthiness,
-        'searchwords' => $_POST['searchwords']);
+        'searchwords' => $_POST['searchwords'],
+        'articles_found' => $articles_found);
     echo(json_encode($json_to_return));
 }
 
@@ -77,10 +110,7 @@ function search_snopes($searchwords, $result_number) {
         
         if(isset($search_test->find('.search-results .item h3 a', $result_number)->href)) {
             $url = $search_test->find('.search-results .item h3 a', $result_number)->href;
-            //bovenstaande geeft /trump-sends-unpresidented-tweet/ , maar moet omgevormd worden naar url hieronder
-            //http://www.snopes.com/trump-sends-unpresidented-tweet/
             $url = 'http://www.snopes.com' . $url;
-            //print_r($url);
             return $url;
         }
         else {

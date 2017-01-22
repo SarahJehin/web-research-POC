@@ -19,25 +19,106 @@ $trustworthiness = 50;
 
 
 if(isset($_POST['submit'])) {
-    $results = get_key_words($_POST['article'], 6);
-    //first search snopes
-    $url = search_snopes($_POST['searchwords'], 0);
-    echo($url);
-    if($url) {
-        $true_false = open_article_and_check($url, $results, 0);
+    $top_six = get_key_words($_POST['article'], 6);
+    $top_ten = get_key_words($_POST['article'], 10);
+    $top_twenty = get_key_words($_POST['article'], 20);
+    
+    $searchwords = $_POST['searchwords'];
+    
+    if($_POST['do_what'] == 'searchwords' || $_POST['do_what'] == 'both') {
+        $computer_generated_searchwords = find_search_words($_POST['title'], $top_ten);
+        $searchwords = implode(" ", $computer_generated_searchwords);
+        $searchwords = preg_replace('/[^A-Za-z0-9\-\s]/', '', $searchwords);
+        echo("<div>Zoekwoorden zijn: " . $searchwords . "</div>");
     }
-    else {
-        echo("no results found");
+    if($_POST['do_what'] == 'article_reliability' || $_POST['do_what'] == 'both') {
+
+
+        //search_google($_POST['searchwords']);
+
+
+        //first search snopes
+        $url = search_snopes($searchwords, 0);
+        echo($url);
+        if($url) {
+            $true_false = open_article_and_check($url, $top_six, 0);
+            if(strtolower($true_false) && strtolower($true_false) != "not in 5 first results") {
+                $trustworthiness = $trustworthiness + 30;
+            }
+            else if(!strtolower($true_false)) {
+                $trustworthiness = $trustworthiness - 30;
+            }
+        }
+        else {
+            echo("no results found");
+        }
+
+
+        $times_found = 0;
+        //if snopes doesn't have a result, search other newssites
+        $extra_points = search_bbc($searchwords);
+        $trustworthiness = $trustworthiness + $extra_points;
+        if($extra_points > 0) {
+            $times_found++;
+        }
+        else {
+            $trustworthiness = $trustworthiness - 5;
+        }
+        //echo("snopes: " . $true_false . " en betrouwbaarheid: " . $trustworthiness);
+        $extra_points2 = search_the_independent($searchwords);
+        $trustworthiness = $trustworthiness + $extra_points2;
+        if($extra_points2 > 0) {
+            $times_found++;
+        }
+        else {
+            $trustworthiness = $trustworthiness - 5;
+        }
+        echo("snopes: " . $true_false . " en betrouwbaarheid: " . $trustworthiness);
+        echo("<div>BBC points: " . $extra_points . " and Independent points: ". $extra_points2 . "</div>");
+        echo("<div>articles found: " . $times_found . "</div>");
+
+
+        /*
+        $limited_text_for_check = substr($_POST["article"], 0, 5000);
+
+        $limited_text_for_check = preg_replace('/\s+/', '+', $limited_text_for_check);
+        $limited_text_for_check = str_replace('?', '%3F', $limited_text_for_check);
+        $limited_text_for_check = str_replace(',', '%2C', $limited_text_for_check);
+
+        $data = json_decode(file_get_contents('https://api.textgears.com/check.php?text=' . $limited_text_for_check . '&key=DEMO_KEY'), true);
+
+        //convert data to array
+        $data = (array)$data;
+        var_dump($data);
+
+        //get errors count
+        $errors_count = count((array)$data['errors']);
+
+        $api_score = $data['score'];
+        if($api_score >= 0 && $api_score <= 40) {
+            $down_score = 30;
+        }
+        else if($api_score > 40 && $api_score <= 60) {
+            $down_score = 20;
+        }
+        else if($api_score > 60 && $api_score <= 75) {
+            $down_score = 5;
+        }
+        else {
+            $down_score = 0;
+        }
+
+        $trustworthiness = $trustworthiness-$down_score;
+
+        print_r("<div>Api score: " . $api_score . "</div>");
+        print_r("<div>end score: " . $trustworthiness . "</div>");
+
+
+        //search google for hoax articles open the first 3
+        */
+    
     }
     
-    
-    //if snopes doesn't have a result, search other newssites
-    $extra_points = search_bbc($_POST['searchwords']);
-    $trustworthiness = $trustworthiness + $extra_points;
-    //echo("snopes: " . $true_false . " en betrouwbaarheid: " . $trustworthiness);
-    $extra_points2 = search_the_independent($_POST['searchwords']);
-    $trustworthiness = $trustworthiness + $extra_points2;
-    echo("snopes: " . $true_false . " en betrouwbaarheid: " . $trustworthiness);
     
 }
 
@@ -98,22 +179,20 @@ function open_article_and_check($url, $top_words, $result_number) {
         }
         
         //echo($string_to_search_in);
-        $article_relevant = 6;
+        $article_relevant = 0;
         
         $string_to_search_in = str_replace('"', "", $string_to_search_in);
         
         
         foreach($top_words as $top_word) {
             $position = strpos($string_to_search_in , $top_word);
-            
-            if(!$position) {
-                $article_relevant--;
-                //break;
+            if($position) {
+                $article_relevant++;
             }
         }
         
-        echo($article_relevant);
-        if($article_relevant > 3) {
+        echo("<div>article relevance : " . $article_relevant . "</div>");
+        if($article_relevant >= 3) {
             echo("article seems to be relevant and the result on snopes was ");
             $true_false = $page->find('.claim-old span span', 0)->plaintext;
             echo($true_false);
@@ -316,6 +395,41 @@ function check_similarity_independent($url) {
 }
 
 
+function search_google($searchwords) {
+    echo("testje");
+    $search_string = str_replace(" ", "%20", $searchwords);
+    $search_string = $search_string . '%20hoax';
+    echo($search_string);
+    $search_test = file_get_html('https://www.google.be/webhp?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#q=' . $search_string);
+    //echo($search_test);
+    if(!empty($search_test)){
+        
+        $i = 0;
+        
+        $testtt = $search_test->find('.hdtb-mitem hdtb-imb a', 2)->plaintext;
+        echo("dit is testttt: " . $testtt);
+        
+        foreach ($search_test->find('._NId .g .rc h3') as $article) {
+            
+            $title = $search_test->find('._NId .g .rc h3 a',$i)->plaintext;
+            $desc = $search_test->find('._NId .g .rc .st',$i)->plaintext;
+            
+            print_r("<div><h4>" . $title . "</h4>");
+            print_r("<p>" . $desc . "</p></div>");
+            
+            $i++;
+            
+            if($i > 5) {
+                break;
+            }
+        }
+
+
+    }
+}
+
+
+
 
 // get most important words from article
 
@@ -452,7 +566,25 @@ function starts_with_upper($str) {
     }
 }
 
-
+function find_search_words($title, $top_words) {
+    
+    $search_words = array();
+    
+    $title_arr  = explode(" ", str_replace(array("’", PHP_EOL), " ", str_replace(array('.', ',', '?'), "", $title)));
+    //for each title word, check if it is in the top words or is similar to a top word, if yes -> searchword
+    foreach($title_arr as $title_word) {
+        foreach($top_words as $top_word) {
+            similar_text($title_word, $top_word, $percent);
+            if($percent > 75) {
+                if(!in_array($title_word, $search_words)) {
+                    array_push($search_words, $title_word);
+                }
+            }
+        }
+    }
+    
+    return $search_words;
+}
 
 
 ?>
@@ -483,13 +615,24 @@ function starts_with_upper($str) {
                     <input type="text" name="searchwords" id="searchwords">
                 </div>
                 <div>
+                    <label for="title">Titel:</label>
+                    <input type="text" name="title" id="title">
+                </div>
+                <div>
                     <label for="article">Artikel</label>
                     <textarea name="article" id="article"></textarea>
                 </div>
+                <!--
                 <div>
                     <label for="date">Datum van publicatie:</label>
                     <input type="date" name="date" id="date">
                 </div>
+                -->
+                <select name="do_what">
+                    <option value="searchwords" selected>Get searchwords</option>
+                    <option value="article_reliability">Article reliability</option>
+                    <option value="both">Both</option>
+                </select>
                 <input type="submit" name="submit" value="Zoek">
             </form>
             
@@ -497,8 +640,8 @@ function starts_with_upper($str) {
         
         <div>
             <h2>Most important words:</h2>
-            <?php if(isset($results)): ?>
-            <?php foreach($results as $result): ?>
+            <?php if(isset($top_twenty)): ?>
+            <?php foreach($top_twenty as $result): ?>
             <div><?php echo $result ?></div>
             <?php endforeach ?>
             <?php endif ?>

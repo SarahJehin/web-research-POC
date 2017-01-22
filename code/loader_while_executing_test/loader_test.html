@@ -11,6 +11,25 @@
             width: 500px;
             margin: 0 auto;
             margin-top: 50px;
+            color: #192379;
+        }
+        
+        main h1 {
+            color: #253d8d;
+            text-align: center;
+            border-bottom: 1px solid #192379;
+        }
+        
+        main > p {
+            text-align: center;
+            font-style: italic;
+            color: #4059ac;
+        }
+        
+        .check_block {
+            padding-top: 10px;
+            margin-top: 30px;
+            border-top: 1px #192379 solid;
         }
         
         form div {
@@ -30,13 +49,23 @@
         form textarea {
             width: 95.5%;
             padding: 5px 2%;
-            border: 1px solid #666;
+            border: 1px solid #253d8d;
         }
         
         form textarea {
             height: 150px;
         }
         
+        form input[type="submit"] {
+            width: 100%;
+            background-color: #253d8d;
+            color: #fff;
+            cursor: pointer;
+        }
+        
+        form input[type="submit"]:hover {
+            background-color: #192379;
+        }
         
         .loading {
             text-align: center;
@@ -47,9 +76,29 @@
             height: auto;
         }
         
+        .result {
+            margin-bottom: 200px;
+            margin-top: 50px;
+        }
+        
         .snopes {
             background-color: #fbda64;
             padding: 5px;
+            color: #333;
+        }
+        
+        .snopes_result {
+            font-weight: bold;
+            font-size: 1.5em;
+            padding: 3px 5px;
+            color: rgba(238, 238, 238, 0.8);
+            border-radius: 3px;
+        }
+        .snopes_result.false {
+            background-color: #ad2e2e;
+        }
+        .snopes_result.true {
+            background-color: #2d9848;
         }
         
         .trustworthiness {
@@ -81,7 +130,13 @@
 <body>
     
     <main>
-        <div>
+       
+        <h1>Factchecker</h1>
+        
+        <p>Check how trustworthy an article found on the internet really is.</p>
+        <p>We check some other factcheckers and reliable newssources to determine how reliable the article is.</p>
+       
+        <div class="check_block">
             <p>Enter your keywords and the article below:</p>
             
             <form id="target" method="post" action="">
@@ -90,16 +145,10 @@
                     <input type="text" name="searchwords" id="searchwords">
                 </div>
                 <div>
-                    <label for="article">Artikel</label>
+                    <label for="article">Article:</label>
                     <textarea name="article" id="article"></textarea>
                 </div>
-                <!--
-                <div>
-                    <label for="date">Datum van publicatie:</label>
-                    <input type="date" name="date" id="date">
-                </div>
-                -->
-                <input type="submit" name="submit" value="Zoek">
+                <input type="submit" name="submit" value="Check">
             </form>
             
         </div>
@@ -107,18 +156,19 @@
         
         <div class="loading">
             <h4>We're checking the article's reliability</h4>
+            <h5 class="spinner">... searching Snopes ...</h5>
             <img id="loading_spinner" src="loading_icon.gif">
         </div>
         
         <div class="result">
             <div class="snopes">
                 <h2>Snopes result:</h2>
-                <p>This article was found on snopes.com and was declared <span class="snopes_result"></span></p>
+                <p>This article was found on snopes.com and was declared <span class="snopes_result">false</span></p>
             </div>
             
             <div>
                 <p>
-                    We checked two sources and found some similar articles from which we conclude the reliability is:
+                    We checked two sources and found <span class="articles_found"></span> similar article(s) from which we conclude the reliability is:
                 </p>
                 <div class="trustworthiness"></div>
             </div>
@@ -132,38 +182,41 @@
     <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
     <script>
         (function ( window, document, $, undefined ) {
-            console.log("test");
             
-            //$("#loading_spinner").hide();
+            //sources to check
+            var sources = ["Snopes", "BBC", "The Independent"];
+            var i = 0;
+            
+            var clearer = setInterval(function() {
+                $( ".spinner" ).fadeOut( "slow", function() {
+                    $(".spinner").text("... searching " + sources[i] + " ...");
+                    $( ".spinner" ).fadeIn("slow");
+                });
+                //$(".spinner").text("... searching " + sources[i] + " ...");
+                i++;
+                if(i > 2) {
+                    i = 0;
+                }
+            }, 3500);
+            
             $('.loading').hide();
             $('.result').hide();
             $('.snopes').hide();
             
             $( "#target" ).submit(function( event ) {
-              //alert( "Handler for .submit() called." );
               event.preventDefault();
-                console.log('ja??');
-                //$("#loading_spinner").show();
+                $('.result').hide();
+                $('.snopes').hide();
                 $(".loading").show();
-                window.scrollTo(0, 500);
-                
-                /*$.post( "executable.php", { submit: "set", searchwords: $("#searchwords").val(), article: $('#article').val()} ).done(function( data ) {
-                    console.log("vreemd...");
-                    console.log( "Data Loaded: " + data );
-                    console.log(data);
-                    console.log(data.snopes_result);
-                    $(".snopes_result").text(data.snopes_result);
-                    $(".trustworthiness").text(data.trustworthiness);
-                    $(".loading").hide();
-                    //$("#loading_spinner").hide();
-                    $(".result").show();
-                  });*/
+                window.scrollTo(0, 600);
                 
                 $.post( "executable.php", { submit: "set", searchwords: $("#searchwords").val(), article: $('#article').val()} , function( data ) {
                     console.log(data);
-                    console.log(data.snopes_result);
+                    $(".trustworthiness").removeClass("good average bad");
                     $(".snopes_result").text(data.snopes_result);
+                    $(".snopes_result").addClass(data.snopes_result.toLowerCase());
                     $(".trustworthiness").text(data.trustworthiness);
+                    $(".articles_found").text(data.articles_found);
                     if(data.trustworthiness > 70) {
                         $(".trustworthiness").addClass("good");
                     }
@@ -174,22 +227,13 @@
                         $(".trustworthiness").addClass("average");
                     }
                     $(".loading").hide();
-                    //$("#loading_spinner").hide();
-                    console.log(data.snopes_result.toLowerCase() + " = false ?");
-                    $test = data.snopes_result.toLowerCase();
-                    if($test != "not in 5 first results") {
-                        console.log("test");
+                    $snopes_result = data.snopes_result.toLowerCase();
+                    if($snopes_result != "not in 5 first results") {
                         $('.snopes').show();
                     }
                     $(".result").show();
                 }, "json");
                 
-                /*$.getJSON( "executable.php", function( data ) {
-                    console.log(data);
-                    console.log(data.snopes_result);
-                    $(".loading").hide();
-                    $(".result").show();
-                });*/
                 
             });
             
