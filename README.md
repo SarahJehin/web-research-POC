@@ -1,19 +1,19 @@
-# Logboek
+# Logboek Proof of Concept - Check reliabilty of an article found on the internet
 
 ## 08/12/2016
 **Mogelijke aanpak:**
-  > Belangrijkste woorden uit artikel halen
-  > Artikels ophalen via API's (enkel NY Times en The Guardian)
-  > PHP scraping van de archief-pagina van andere sites
+   Belangrijkste woorden uit artikel halen  
+   Artikels ophalen via API's (enkel NY Times en The Guardian)  
+   PHP scraping van de archief-pagina van andere sites  
 
 **Uitwerking belangrijkste woorden ophalen (filters):**
-  > get words starting with an uppercase, not preceded by a .  
+   get words starting with an uppercase, not preceded by a .  
 		"Donald Trump decided to build the Mexican wall.  He told this to the Daily Mail." => Donald,Trump,Mexican,Daily,Mail  
-  > filter words shorter than 4 characters  
+   filter words shorter than 4 characters  
 		"The big boss took a look in the factory." => boss,took,look,factory  
-  > filter most common English words  
+   filter most common English words  
 		"They asked Hillary what she thought about the wall" => asked,Hillary,thought,wall  
-  > get most common words in article (by amount of occurrences)  
+   get most common words in article (by amount of occurrences)  
 		"Toyota proposed to move to Spain.  'It's all fixed', says Goldman, speechman of Toyota" => Toyota  
 
 ## 15, 16, 17/12/2016
@@ -76,8 +76,8 @@
 
 ## 18, 19/01/2017
    - hoe goed is het artikel geschreven --> met online spelling checkers
-   - http://www.onlinecorrection.com/ geeft het aantal fouten terug + vindt ook fouten zoals your vs you're
-   - met curl post naar onlinecorrection.com -> blijft oneindig loaden.  Ontbreekt er data bij post??  
+   - http://www.onlinecorrection.com/ geeft het aantal fouten terug + vindt ook fouten zoals *"your"* vs *"you're"*
+   - met curl post naar onlinecorrection.com --> blijft oneindig loaden.  Ontbreekt er data bij post??  
 
 ## 20/01/2017
    - spellingcheck met api ipv curl
@@ -89,12 +89,20 @@
    - pspell van php zelf is ook een optie om te zien hoeveel fouten erin voorkomen (maar api werkt beter)
 
 ## 22/01/2017
-   - zoekwoorden afleiden uit combinatie van titel en artikel (-> werkt goed voor bepaalde artikels, maar is vrij onnauwkeurig voor andere artikels)
+   - zoekwoorden afleiden uit combinatie van titel en artikel (--> werkt goed voor bepaalde artikels, maar is vrij onnauwkeurig voor andere artikels)
+   - aanpak van sites waarbij de zoekresultaten worden ingeladen met angular? --> ophalen met PhantomJS
+
+## 23/01/2017
+   - Scraping met PhantomJS --> maakt gebruik van jQuery om elementen op een pagina te vinden  
+   - PhantomJS script aanroepen vanuit php en de juiste url als parameter meegeven
+   - Resultaten van javascript opvangen om die daarna te gaan scrapen met PHP
 
 
 ## Geraadpleegde bronnen
 ### Filteren:
 https://en.wikipedia.org/wiki/Tf%E2%80%93idf  
+http://softwareengineering.stackexchange.com/questions/179791/language-parsing-to-find-important-words  
+http://hlt.di.fct.unl.pt/jfs/Unigrams.pdf  
 ### Beschikbare API's
 https://developer.nytimes.com/  
 http://open-platform.theguardian.com/documentation/  
@@ -110,13 +118,26 @@ http://www.html-form-guide.com/php-form/php-form-submit.html
 http://stackoverflow.com/questions/17270335/creating-a-robot-to-fill-form-with-some-pages-in  
 https://davidwalsh.name/curl-post  
 ### Online English spelling checkers (incl API's)
-http://www.onlinecorrection.com/ (dit is één van de weinige die ook het aantal fouten teruggeeft)
+http://www.onlinecorrection.com/ (dit is één van de weinige die ook het aantal fouten teruggeeft)  
 https://textgears.com/api/  
 http://www.hackingwithphp.com/16/7/1/calculating-similarity-of-words (met pspell fouten terugvinden)  
-### Vergelijken van overeenkomst van strings / artikels (allemaal te onnauwkeurig...)
+### Vergelijken van overeenkomst van strings / artikels (allemaal te onnauwkeurig...)  
 http://php.net/manual/en/function.similar-text.php  
 https://cambiatablog.wordpress.com/2011/03/25/algorithm-for-string-similarity-better-than-levenshtein-and-similar_text/  
-https://github.com/akalongman/php-string-compare
+https://github.com/akalongman/php-string-compare  
+### Scraping with PhantomJS (+ aanroepen vanuit PHP)  
+http://stackoverflow.com/questions/39789333/scraping-web-page-loaded-through-angularjs-curl-php  
+http://phantomjs.org/quick-start.html  
+http://phantomjs.org/api/webpage/method/evaluate.html  
+http://stackoverflow.com/questions/17448439/screen-scraping-js-page  
+http://php.net/manual/en/function.exec.php  
+http://php.net/manual/en/function.sprintf.php  
+
+
+
+
+
+
 
 
 

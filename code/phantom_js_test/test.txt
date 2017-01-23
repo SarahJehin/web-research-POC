@@ -1,0 +1,2 @@
+0: C:/xampp/htdocs/MT3/web_research_POC/code/phantom_js_test/test_search.js
+1: https://www.washingtonpost.com/newssearch/?query=brazil%20tribe

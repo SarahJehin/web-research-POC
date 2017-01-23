@@ -150,17 +150,17 @@ function open_article_and_check($url, $top_words, $result_number) {
             $k++;
         }
         
-        $article_relevant = 6;
+        $article_relevant = 0;
         $string_to_search_in = str_replace('"', "", $string_to_search_in);
         
         foreach($top_words as $top_word) {
             $position = strpos($string_to_search_in , $top_word);
-            if(!$position) {
-                $article_relevant--;
+            if($position) {
+                $article_relevant++;
             }
         }
         
-        if($article_relevant > 3) {
+        if($article_relevant >= 3) {
             //echo("article seems to be relevant and the result on snopes was ");
             $true_false = $page->find('.claim-old span span', 0)->plaintext;
             //echo($true_false);
